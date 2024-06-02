@@ -1,25 +1,42 @@
-import logo from './logo.svg';
-import './App.css';
+// src/App.js
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import 'react-toastify/dist/ReactToastify.css';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './Firebase/Firebase';
+import Login from './Auth/Login';
+import PrivateRoute from './Private/PrivateRoute';
+import AdminDashboard from './Admin/AdminDashboard';
 
-function App() {
+const AppRoutes = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+    </Routes>
   );
-}
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppRoutes />
+    </Router>
+  );
+};
 
 export default App;
